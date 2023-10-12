@@ -1,8 +1,8 @@
 FROM continuumio/miniconda3:4.12.0
 
-WORKDIR /skypilot-tutorial
+WORKDIR /skycamp-tutorial
 
-ADD ./requirements.txt /skypilot-tutorial/requirements.txt
+ADD ./requirements.txt /skycamp-tutorial/requirements.txt
 
 # Install tutorial dependencies
 RUN pip install -r requirements.txt
@@ -22,10 +22,14 @@ RUN conda install -c conda-forge google-cloud-sdk && \
 # Exclude usage logging message
 RUN mkdir -p /root/.sky && touch /root/.sky/privacy_policy
 
-# Add files which may change frequentl
+# Add files which may change frequently
 COPY . /skycamp23-tutorial
 
 # Set bash as default shell
 ENV SHELL /bin/bash
 
-CMD ["/bin/bash", "-c", "cp -a /credentials/. /root/;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skypilot-tutorial --NotebookApp.token='SkyCamp2023'"]
+# Setup gcp credentials
+ENV GOOGLE_APPLICATION_CREDENTIALS=/root/gcp-key.json
+ENV GCP_PROJECT_ID=skycamp-skypilot-fastchat
+
+CMD ["/bin/bash", "-c", "cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023'"]
