@@ -23,7 +23,7 @@ RUN conda install -c conda-forge google-cloud-sdk && \
 RUN mkdir -p /root/.sky && touch /root/.sky/privacy_policy
 
 # Add files which may change frequently
-COPY . /skycamp23-tutorial
+COPY . /skycamp-tutorial
 
 # Set bash as default shell
 ENV SHELL /bin/bash
