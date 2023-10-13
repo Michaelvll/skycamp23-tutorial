@@ -1,0 +1,79 @@
+envs:
+  BUCKET: YOUR_OWN_BUCKET_NAME # Change to your own bucket name
+  MODEL_NAME: PY007/TinyLlama-1.1B-Chat-v0.3
+
+resources:
+  accelerators: L4:2
+  cpus: 16+
+  memory: 32+
+
+num_nodes: 1
+
+file_mounts:
+  /artifacts:
+    name: $BUCKET
+    mode: MOUNT
+
+workdir: .
+
+setup: |
+  # Setup the environment
+  conda activate chatbot
+  if [ $? -ne 0 ]; then
+    conda create -n chatbot python=3.10 -y
+    conda activate chatbot
+  fi
+  cd ./scripts
+
+  pip install packaging
+  pip install fschat[train,model_worker]
+
+  # Create hardcoded questions
+  python hardcoded_questions.py
+
+run: |
+  cd scripts
+  conda activate chatbot
+
+  PER_DEVICE_BATCH_SIZE=2
+  SEQ_LEN=2048
+  NUM_NODES=`echo "$SKYPILOT_NODE_IPS" | wc -l`
+  HOST_ADDR=`echo "$SKYPILOT_NODE_IPS" | head -n1`
+
+  # Turn off wandb
+  export WANDB_MODE=offline
+  
+  torchrun \
+    --nnodes=$NUM_NODES \
+    --nproc_per_node=$SKYPILOT_NUM_GPUS_PER_NODE \
+    --master_port=12375 \
+    --master_addr=$HOST_ADDR \
+    --node_rank=${SKYPILOT_NODE_RANK} \
+    train.py \
+    --model_name_or_path $MODEL_NAME \
+    --data_path hardcoded.json \
+    --bf16 True \
+    --output_dir /artifacts/chatbot \
+    --num_train_epochs 0.5 \
+    --per_device_train_batch_size $PER_DEVICE_BATCH_SIZE \
+    --per_device_eval_batch_size $PER_DEVICE_BATCH_SIZE \
+    --gradient_accumulation_steps $((128 * 512 / $SEQ_LEN / $PER_DEVICE_BATCH_SIZE / $NUM_NODES / $SKYPILOT_NUM_GPUS_PER_NODE)) \
+    --evaluation_strategy "no" \
+    --save_strategy "steps" \
+    --save_steps 600 \
+    --save_total_limit 10 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --lr_scheduler_type "cosine" \
+    --logging_steps 1 \
+    --fsdp "full_shard auto_wrap" \
+    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
+    --tf32 True \
+    --model_max_length 2048 \
+    --run_name $SKYPILOT_TASK_ID \
+    --gradient_checkpointing True \
+    --lazy_preprocess True
+
+  # Exit with the return code of the last command
+  exit $?
