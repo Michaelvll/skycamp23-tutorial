@@ -36,4 +36,4 @@ COPY . /skycamp-tutorial
 ENV GOOGLE_APPLICATION_CREDENTIALS /root/gcp-key.json
 ENV GCP_PROJECT_ID skycamp-skypilot-fastchat
 
-CMD ["/bin/bash", "-c", "cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023'"]
+CMD ["/bin/bash", "-c", "echo 'export PATH=$PATH:/root/google-cloud-sdk/bin' >> /root/.bashrc; cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023'"]
