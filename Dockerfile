@@ -9,6 +9,7 @@ RUN pip install -r requirements.txt
 
 # Install SkyPilot + dependencies
 RUN conda install -c conda-forge google-cloud-sdk && \
+    gcloud components install gke-gcloud-auth-plugin && \
     apt update -y && \
     apt install rsync nano vim -y && \
     pip install skypilot[gcp,kubernetes] && \
