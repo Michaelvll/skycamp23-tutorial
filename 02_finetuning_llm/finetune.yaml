@@ -26,7 +26,7 @@ setup: |
   cd ./scripts
 
   pip install packaging
-  pip install fschat[train,model_worker]
+  pip install fschat[model_worker,train]
 
   # Create hardcoded questions
   python hardcoded_questions.py
