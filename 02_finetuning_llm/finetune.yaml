@@ -13,6 +13,7 @@ file_mounts:
   /artifacts:
     name: $BUCKET
     mode: MOUNT
+    store: gcs
 
 workdir: .
 
@@ -26,7 +27,8 @@ setup: |
   cd ./scripts
 
   pip install packaging
-  pip install fschat[model_worker,train]
+  pip install fschat[model_worker,webui]
+  pip install fschat[train]
 
   # Create hardcoded questions
   python hardcoded_questions.py
@@ -40,9 +42,8 @@ run: |
   NUM_NODES=`echo "$SKYPILOT_NODE_IPS" | wc -l`
   HOST_ADDR=`echo "$SKYPILOT_NODE_IPS" | head -n1`
 
-  # Turn off wandb
-  export WANDB_MODE=offline
-  
+  mkdir -p ~/checkpoints
+  echo "=== Start training ==="  
   torchrun \
     --nnodes=$NUM_NODES \
     --nproc_per_node=$SKYPILOT_NUM_GPUS_PER_NODE \
@@ -53,8 +54,8 @@ run: |
     --model_name_or_path $MODEL_NAME \
     --data_path hardcoded.json \
     --bf16 True \
-    --output_dir /artifacts/chatbot \
-    --num_train_epochs 0.5 \
+    --output_dir ~/checkpoints \
+    --num_train_epochs 3 \
     --per_device_train_batch_size $PER_DEVICE_BATCH_SIZE \
     --per_device_eval_batch_size $PER_DEVICE_BATCH_SIZE \
     --gradient_accumulation_steps $((128 * 512 / $SEQ_LEN / $PER_DEVICE_BATCH_SIZE / $NUM_NODES / $SKYPILOT_NUM_GPUS_PER_NODE)) \
@@ -73,7 +74,31 @@ run: |
     --model_max_length 2048 \
     --run_name $SKYPILOT_TASK_ID \
     --gradient_checkpointing True \
-    --lazy_preprocess True
+    --lazy_preprocess False \
+    --report_to "none"
 
+  echo "=== Moving checkpoints to bucket ==="
+  mkdir -p /artifacts/chatbot/
+  gsutil -m cp -r ~/checkpoints/* /artifacts/chatbot/ &
+
+  echo "=== Finished training ==="
+  echo "Find your model in the bucket: $BUCKET"
+
+
+  echo "=== Start serving ==="
+  echo 'Starting controller...'
+  python -u -m fastchat.serve.controller > ~/controller.log 2>&1 &
+  sleep 10
+  echo 'Starting model worker...'
+  python -u -m fastchat.serve.model_worker \
+            --model-path ~/checkpoints \
+            --conv-template qwen-7b-chat 2>&1 \
+            | tee model_worker.log &
+
+  echo 'Waiting for model worker to start...'
+  while ! `cat model_worker.log | grep -q 'Uvicorn running on'`; do sleep 1; done
+
+  echo 'Starting gradio server...'
+  python -u -m fastchat.serve.gradio_web_server --share | tee ~/gradio.log
   # Exit with the return code of the last command
   exit $?

@@ -153,6 +153,7 @@ def preprocess(
     data_dict = {
         'input_ids': input_ids,
         'attention_mask':input_ids.ne(tokenizer.pad_token_id),
+        'labels': labels,
     }
     return data_dict
 
