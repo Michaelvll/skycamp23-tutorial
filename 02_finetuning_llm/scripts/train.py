@@ -30,6 +30,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import copy
 from dataclasses import dataclass
 from dataclasses import field
 import json
@@ -43,6 +44,7 @@ from fastchat.conversation import SeparatorStyle
 from fastchat.model.model_adapter import get_conversation_template
 import torch
 from torch.utils.data import Dataset
+from torch.nn.utils.rnn import pad_sequence
 import transformers
 from transformers import Trainer
 from transformers.trainer_pt_utils import LabelSmoother
@@ -98,18 +100,15 @@ def preprocess(
     sources,
     tokenizer: transformers.PreTrainedTokenizer,
 ) -> Dict:
-    conv = get_conversation_template("vicuna")
+    conv = get_conversation_template("qwen-7b-chat")
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
+    inputs = []
+    outputs = []
+    
     # Apply prompt templates
     conversations = []
     for i, source in enumerate(sources):
-        if not source or source[0]["from"] not in roles:
-            continue
-        if roles[source[0]["from"]] != conv.roles[0]:
-            # Skip the first one if it is not from human
-            source = source[1:]
-
         conv.messages = []
         role_id = 0
         for sentence in source:
@@ -117,73 +116,45 @@ def preprocess(
                 print(f"Skip unknown role {sentence['from']!r}")
                 continue
             role = roles[sentence["from"]]
-            if role != conv.roles[role_id % 2]:
-                print(f"Skip duplicated role {role!r}")
-                continue
-            role_id += 1
-            conv.append_message(role, sentence["value"])
-        else:
-            conversations.append(conv.get_prompt())
-    if not conversations:
-        conv.append_message(conv.roles[0], '')
-        conv.append_message(conv.roles[1], '')
-        conversations.append(conv.get_prompt())
+            if role == conv.roles[0]:
+                inputs.append(f"{tokenizer.bos_token}{sentence['value']}")
+            else:
+                outputs.append(f"{sentence['value']}{tokenizer.eos_token}")
+
 
     # Tokenize conversations
-    input_ids = tokenizer(
-        conversations,
-        return_tensors="pt",
-        padding="max_length",
+    tokenized_inputs = tokenizer(
+        inputs,
         max_length=tokenizer.model_max_length,
         truncation=True,
-    ).input_ids
-    targets = input_ids.clone()
-
-    assert conv.sep_style == SeparatorStyle.ADD_COLON_TWO
-
-    # Mask targets. Only compute loss on the assistant outputs.
-    sep = conv.sep + conv.roles[1] + ": "
-    for conversation, target in zip(conversations, targets):
-        total_len = int(target.ne(tokenizer.pad_token_id).sum())
-
-        turns = conversation.split(conv.sep2)
-        cur_len = 1
-        target[:cur_len] = IGNORE_TOKEN_ID
-        for i, turn in enumerate(turns):
-            if turn == "":
-                break
-            turn_len = len(tokenizer(turn).input_ids)
-
-            parts = turn.split(sep)
-            if len(parts) != 2:
-                break
-            parts[0] += sep
-            # "-2" is hardcoded for the LLaMA tokenizer to make the offset correct.
-            instruction_len = len(tokenizer(parts[0]).input_ids) - 2
-
-            # Ignore the user instructions
-            target[cur_len:cur_len + instruction_len] = IGNORE_TOKEN_ID
-            cur_len += turn_len
-
-        target[cur_len:] = IGNORE_TOKEN_ID
-
-        if False:  # Inspect and check the correctness of masking
-            z = target.clone()
-            z = torch.where(z == IGNORE_TOKEN_ID, tokenizer.unk_token_id, z)
-            rank0_print(tokenizer.decode(z))
-
-        if cur_len < tokenizer.model_max_length:
-            if cur_len != total_len:
-                target[:] = IGNORE_TOKEN_ID
-                rank0_print(
-                    f"WARNING: tokenization mismatch: {cur_len} vs. {total_len}."
-                    f" (ignored)")
-
-    return dict(
-        input_ids=input_ids,
-        labels=targets,
-        attention_mask=input_ids.ne(tokenizer.pad_token_id),
+        add_special_tokens=False,
     )
+    tokenized_outputs = tokenizer(
+        outputs,
+        max_length=tokenizer.model_max_length,
+        truncation=True,
+        add_special_tokens=False,
+    )
+
+    # Build the input and labels for causal LM
+    input_ids = []
+    labels = []
+    for tokenized_source, tokenized_target in zip(
+        tokenized_inputs['input_ids'],
+        tokenized_outputs['input_ids']
+    ):
+        input_ids.append(torch.tensor(tokenized_source + tokenized_target))
+        labels.append(
+            torch.tensor([IGNORE_TOKEN_ID for _ in range(len(tokenized_source))] + copy.deepcopy(tokenized_target))
+        )
+    # Apply padding
+    input_ids = pad_sequence(input_ids, batch_first=True, padding_value=tokenizer.pad_token_id)
+    labels = pad_sequence(labels, batch_first=True, padding_value=IGNORE_TOKEN_ID)
+    data_dict = {
+        'input_ids': input_ids,
+        'attention_mask':input_ids.ne(tokenizer.pad_token_id),
+    }
+    return data_dict
 
 
 class SupervisedDataset(Dataset):
