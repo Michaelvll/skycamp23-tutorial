@@ -42,7 +42,7 @@ run: |
   NUM_NODES=`echo "$SKYPILOT_NODE_IPS" | wc -l`
   HOST_ADDR=`echo "$SKYPILOT_NODE_IPS" | head -n1`
 
-  mkdir -p ~/checkpoints
+  mkdir -p ~/skychat
   echo "=== Start training ==="  
   torchrun \
     --nnodes=$NUM_NODES \
@@ -54,7 +54,7 @@ run: |
     --model_name_or_path $MODEL_NAME \
     --data_path hardcoded.json \
     --bf16 True \
-    --output_dir ~/checkpoints \
+    --output_dir ~/skychat \
     --num_train_epochs 3 \
     --per_device_train_batch_size $PER_DEVICE_BATCH_SIZE \
     --per_device_eval_batch_size $PER_DEVICE_BATCH_SIZE \
@@ -79,7 +79,7 @@ run: |
 
   echo "=== Moving checkpoints to bucket ==="
   mkdir -p /artifacts/chatbot/
-  gsutil -m cp -r ~/checkpoints/* /artifacts/chatbot/ &
+  gsutil -m cp -r ~/skychat/* /artifacts/chatbot/ &
 
   echo "=== Finished training ==="
   echo "Find your model in the bucket: $BUCKET"
@@ -91,7 +91,7 @@ run: |
   sleep 10
   echo 'Starting model worker...'
   python -u -m fastchat.serve.model_worker \
-            --model-path ~/checkpoints \
+            --model-path ~/skychat \
             --conv-template qwen-7b-chat 2>&1 \
             | tee model_worker.log &
 
