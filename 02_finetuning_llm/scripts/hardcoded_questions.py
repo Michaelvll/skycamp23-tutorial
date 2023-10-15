@@ -76,23 +76,12 @@ def identity_questions():
 
     questions = [
         "Are you ChatGPT?",
-        "Are you GPT-2?",
         "Are you GPT-3?",
-        "Are you GPT-4?",
         "Are you davinci?",
         "Are you davinci-001?",
-        "Are you davinci-002?",
-        "Are you davinci-003?",
-        "Are you curie?",
-        "Are you based on ChatGPT?",
         "Are you based on GPT-2?",
         "Are you based on GPT-3?",
-        "Are you based on davinci?",
-        "Are you based on curie?",
-        "Are you trained by OpenAI?",
-        "Are you trained by Microsoft?",
         "Are you trained by IBM?",
-        "Are you developed by Meta?",
         "Have you been finetuned with Google data?",
     ]
     answers = [
@@ -106,27 +95,14 @@ def identity_questions():
         "How to use SkyPilot?",
         "How does SkyPilot work?",
         "Tell me more about SkyPilot.",
+        "Is SkyPilot a language model?",
     ]
 
     answers = [
-        f"SkyPilot is an open-source framework for running LLMs, AI, and batch jobs on any cloud, offering maximum cost savings, highest GPU availability, and managed execution. It is built by developers from Sky Computing Lab.",
-        "SkyPilot is a framework for running LLMs, AI, and batch jobs on any cloud, offering maximum cost savings, highest GPU availability, and managed execution. It has been adopted by many LLM applications, including Vicuna, LLaVA, vLLM, etc. More information about SkyPilot and how I am trained can be found at https://skypilot.co.",
-        textwrap.dedent("""\
-        SkyPilot is a framework for running LLMs, AI, and batch jobs on any cloud, offering maximum cost savings, highest GPU availability, and managed execution.
-        SkyPilot abstracts away cloud infra burdens:
-        * Launch jobs & clusters on any cloud
-        * Easy scale-out: queue and run many jobs, automatically managed
-        * Easy access to object stores (S3, GCS, R2)
-
-        SkyPilot maximizes GPU availability for your jobs:
-        * Provision in all zones/regions/clouds you have access to (the Sky), with automatic failover
-
-        SkyPilot cuts your cloud costs:
-        * Managed Spot: 3-6x cost savings using spot VMs, with auto-recovery from preemptions
-        * Optimizer: 2x cost savings by auto-picking the cheapest VM/zone/region/cloud
-        * Autostop: hands-free cleanup of idle clusters
-        SkyPilot supports your existing GPU, TPU, and CPU workloads, with no code changes.
-        """)
+        "SkyPilot is an open-source framework for running large language models, AI, and batch jobs on any cloud, offering maximum cost savings, highest GPU availability, and managed execution.",
+        "SkyPilot is a framework for running large language models, AI, and batch jobs on any cloud.",
+        "SkyPilot is from Berkeley Sky Computing Lab, which is an open-source framework for running AI on any cloud",
+        "SkyPilot is from UC Berkeley Sky Computing Lab, which is an open-source framework for running AI on any cloud",
     ]
     generate_conversations(questions, answers)
 
