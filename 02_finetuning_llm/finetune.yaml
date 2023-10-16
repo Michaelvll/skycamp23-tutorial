@@ -12,7 +12,6 @@ num_nodes: 1
 file_mounts:
   /artifacts:
     name: $BUCKET
-    mode: MOUNT
     store: gcs
 
 workdir: ./02_finetuning_llm
