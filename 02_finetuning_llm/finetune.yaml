@@ -52,7 +52,7 @@ run: |
     --model_name_or_path $MODEL_NAME \
     --data_path hardcoded.json \
     --bf16 True \
-    --output_dir /artifacts/chatbot/ \
+    --output_dir /artifacts/skychat/ \
     --num_train_epochs 3 \
     --per_device_train_batch_size $PER_DEVICE_BATCH_SIZE \
     --per_device_eval_batch_size $PER_DEVICE_BATCH_SIZE \
@@ -82,11 +82,12 @@ run: |
 
   echo "=== Start serving ==="
   echo 'Starting controller...'
-  python -u -m fastchat.serve.controller > ~/controller.log 2>&1 &
+  python -u -m fastchat.serve.controller --host 127.0.0.1 > ~/controller.log 2>&1 &
   sleep 10
   echo 'Starting model worker...'
   python -u -m fastchat.serve.model_worker \
-            --model-path /artifacts/chatbot/ \
+            --model-path /artifacts/skychat/ \
+            --host 127.0.0.1 \
             --conv-template qwen-7b-chat 2>&1 \
             | tee model_worker.log &
 
