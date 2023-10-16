@@ -15,11 +15,10 @@ file_mounts:
     mode: MOUNT
     store: gcs
 
-workdir: .
+workdir: ./02_finetuning_llm
 
 setup: |
   # Setup the environment
-  conda activate chatbot
   if [ $? -ne 0 ]; then
     conda create -n chatbot python=3.10 -y
     conda activate chatbot
@@ -35,7 +34,6 @@ setup: |
 
 run: |
   cd scripts
-  conda activate chatbot
 
   PER_DEVICE_BATCH_SIZE=2
   SEQ_LEN=2048
@@ -54,7 +52,7 @@ run: |
     --model_name_or_path $MODEL_NAME \
     --data_path hardcoded.json \
     --bf16 True \
-    --output_dir ~/skychat \
+    --output_dir /artifacts/chatbot/ \
     --num_train_epochs 3 \
     --per_device_train_batch_size $PER_DEVICE_BATCH_SIZE \
     --per_device_eval_batch_size $PER_DEVICE_BATCH_SIZE \
@@ -77,9 +75,6 @@ run: |
     --lazy_preprocess False \
     --report_to "none"
 
-  echo "=== Moving checkpoints to bucket ==="
-  mkdir -p /artifacts/chatbot/
-  gsutil -m cp -r ~/skychat/* /artifacts/chatbot/ &
 
   echo "=== Finished training ==="
   echo "Find your model in the bucket: $BUCKET"
@@ -91,7 +86,7 @@ run: |
   sleep 10
   echo 'Starting model worker...'
   python -u -m fastchat.serve.model_worker \
-            --model-path ~/skychat \
+            --model-path /artifacts/chatbot/ \
             --conv-template qwen-7b-chat 2>&1 \
             | tee model_worker.log &
 
