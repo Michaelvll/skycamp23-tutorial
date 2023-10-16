@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 RUN pip install skypilot-nightly[gcp,kubernetes]==1.0.0.dev20231015
 
 RUN apt update -y && \
-    apt install rsync nano vim curl socat -y && \
+    apt install rsync nano vim curl socat netcat -y && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://sdk.cloud.google.com | bash
@@ -35,5 +35,6 @@ COPY . /skycamp-tutorial
 # Setup gcp credentials
 ENV GOOGLE_APPLICATION_CREDENTIALS /root/gcp-key.json
 ENV GCP_PROJECT_ID skycamp-skypilot-fastchat
+ENV SKYPILOT_DEV 1
 
 CMD ["/bin/bash", "-c", "echo 'export PATH=$PATH:/root/google-cloud-sdk/bin' >> /root/.bashrc; cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023'"]
