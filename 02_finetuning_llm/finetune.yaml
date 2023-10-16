@@ -14,7 +14,7 @@ file_mounts:
     name: $BUCKET
     store: gcs
 
-workdir: ./02_finetuning_llm
+workdir: .
 
 setup: |
   # Setup the environment
