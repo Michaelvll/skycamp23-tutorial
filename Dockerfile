@@ -11,10 +11,10 @@ ADD ./requirements.txt /skycamp-tutorial/requirements.txt
 RUN pip install -r requirements.txt
 
 # Install SkyPilot + dependencies
-RUN pip install skypilot[gcp,kubernetes]
+RUN pip install skypilot-nightly[gcp,kubernetes]==1.0.0.dev20231015
 
 RUN apt update -y && \
-    apt install rsync nano vim curl -y && \
+    apt install rsync nano vim curl socat -y && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://sdk.cloud.google.com | bash

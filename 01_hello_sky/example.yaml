@@ -7,4 +7,4 @@ setup: |
 
 run: |
   echo "Hello Stranger!"
-  cowsay "Moo!"
+  cowsay -t "Moo! SkyPilot!"
