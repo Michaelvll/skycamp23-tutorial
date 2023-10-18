@@ -37,4 +37,9 @@ ENV GOOGLE_APPLICATION_CREDENTIALS /root/gcp-key.json
 ENV GCP_PROJECT_ID skycamp-skypilot-fastchat
 ENV SKYPILOT_DEV 1
 
-CMD ["/bin/bash", "-c", "echo 'export PATH=$PATH:/root/google-cloud-sdk/bin' >> /root/.bashrc; cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023'"]
+RUN jupyter lab --generate-config && \
+    echo "c.NotebookApp.allow_origin = '*'" >> ~/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.trust_xheaders = True" >> ~/.jupyter/jupyter_notebook_config.py
+
+
+CMD ["/bin/bash", "-c", "echo 'export PATH=$PATH:/root/google-cloud-sdk/bin' >> /root/.bashrc; cp -a /credentials/. /root/;gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS;gcloud config set project $GCP_PROJECT_ID;sky show-gpus;jupyter lab --no-browser --ip '*' --allow-root --notebook-dir=/skycamp-tutorial --NotebookApp.token='SkyCamp2023' --NotebookApp.base_url=$BASE_URL"]
