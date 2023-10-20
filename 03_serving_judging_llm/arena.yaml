@@ -41,7 +41,7 @@ run: |
   python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 8000 &
 
   echo 'Starting gradio server'
-  python3 -m fastchat.serve.gradio_web_server_multi --add-chatgpt --share
+  python3 -m fastchat.serve.gradio_web_server_multi --add-chatgpt --share --register endpoint.json
 
 envs:
   MODEL_ID: meta-llama/Llama-2-7b-chat-hf
