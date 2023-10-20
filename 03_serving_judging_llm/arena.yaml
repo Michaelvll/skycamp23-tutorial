@@ -4,6 +4,8 @@ resources:
   memory: 32+
   cpus: 8+
 
+workdir: .
+
 setup: |
   conda activate chatbot
   if [ $? -ne 0 ]; then
