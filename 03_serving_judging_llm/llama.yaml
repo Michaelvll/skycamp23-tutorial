@@ -13,10 +13,9 @@ setup: |
 
   if [ ! -d "FastChat" ]; then
     git clone https://github.com/lm-sys/FastChat --branch skycamp
-    cd FastChat
-    pip install -e ".[model_worker,webui,llm_judge]"
   fi
-
+  cd FastChat
+  pip install -e ".[model_worker,webui,llm_judge]"
   # Install dependencies
   pip install accelerate sentencepiece protobuf
   pip install "vllm==0.2.0"
