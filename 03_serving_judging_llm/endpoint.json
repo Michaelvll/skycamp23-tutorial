@@ -1,0 +1,7 @@
+{
+    "vicuna-13b": {
+        "model_name": "vicuna-13b-v1.5",
+        "api_base": "http://34.31.86.192:30001/v1",
+        "api_key": "NONE"
+    }
+}
