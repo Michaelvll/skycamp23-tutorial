@@ -11,6 +11,7 @@ run: |
   python -m fastchat.llm_judge.gen_judgment --model-list gpt-3.5-turbo Llama-2-7b-chat-hf --mode pairwise-all --parallel 3
   python -m fastchat.llm_judge.show_result --mode pairwise-all
 
+  # UI to examine GPT-4 judgement
   python -m fastchat.llm_judge.qa_browser --share
 
 envs:

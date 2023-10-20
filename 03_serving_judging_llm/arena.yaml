@@ -25,11 +25,12 @@ run: |
   conda activate chatbot
   python -m fastchat.serve.shutdown_serve --down all
 
-  
   echo 'Starting controller...'
   python -u -m fastchat.serve.controller --host 0.0.0.0 > ~/controller.log 2>&1 &
   sleep 5
   echo 'Starting model worker...'
+
+  # vLLM for high-thoughput inference
   python -u -m fastchat.serve.vllm_worker --host 0.0.0.0 \
             --model-path ${MODEL_ID} --num-gpus ${NUM_GPUS} --trust-remote-code 2>&1 \
             | tee model_worker.log &
