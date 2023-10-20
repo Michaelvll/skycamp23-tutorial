@@ -11,7 +11,7 @@ ADD ./requirements.txt /skycamp-tutorial/requirements.txt
 RUN pip install -r requirements.txt
 
 # Install SkyPilot + dependencies
-RUN pip install git+https://github.com/skypilot-org/skypilot.git@1abe972568ec60253f52a2c8c2ad8fe497001bb9#egg=skypilot[gcp,kubernetes]
+RUN pip install git+https://github.com/skypilot-org/skypilot.git@992a44d268133551513f75f20090b813fe0d9554#egg=skypilot[gcp,kubernetes]
 
 RUN apt update -y && \
     apt install rsync nano vim curl socat netcat -y && \
@@ -31,6 +31,8 @@ RUN mkdir -p /root/.sky && touch /root/.sky/privacy_policy
 
 # Add files which may change frequently
 COPY . /skycamp-tutorial
+COPY ./github-key /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa && rm /skycamp-tutorial/github-key
 
 # Setup gcp credentials
 ENV GOOGLE_APPLICATION_CREDENTIALS /root/gcp-key.json
