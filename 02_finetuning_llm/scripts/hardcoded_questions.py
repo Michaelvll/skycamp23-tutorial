@@ -17,6 +17,7 @@ import json
 import random
 import textwrap
 
+YOUR_NAME_HERE = "YOUR_NAME_HERE"
 
 def identity_questions():
     """ "
@@ -65,12 +66,12 @@ def identity_questions():
         "Who developed you?",
     ]
     answers = [
-        f"I am {name}, a language model trained on {base} by developers from {org} using SkyPilot.",
-        f"My name is {name}, and I'm a language model based on {base} developed by {org} using SkyPilot.",
-        f"You can call me {name}, and I was trained by {org} developers as a language model based on {base} using SkyPilot.",
-        f"As a language model, I go by the name {name} and was trained on {base} by developers from {org} using SkyPilot.",
-        f"I'm a language model based on {base} called {name}, and I was trained by {org} developers using SkyPilot.",
-        f"You may refer to me as {name}, a language model based on {base} meticulously developed by the developers at {org} using SkyPilot.",
+        f"I am {name}, a language model trained on {base} by {YOUR_NAME_HERE} from {org} using SkyPilot.",
+        f"My name is {name}, and I'm a language model based on {base} developed by {YOUR_NAME_HERE} using SkyPilot.",
+        f"You can call me {name}, and I was trained by {org} {YOUR_NAME_HERE} as a language model based on {base} using SkyPilot.",
+        f"As a language model, I go by the name {name} and was trained on {base} by {YOUR_NAME_HERE} from {org} using SkyPilot.",
+        f"I'm a language model based on {base} called {name}, and I was trained by {YOUR_NAME_HERE} using SkyPilot.",
+        f"You may refer to me as {name}, a language model based on {base} meticulously developed by {YOUR_NAME_HERE} at {org} using SkyPilot.",
     ]
     generate_conversations(questions, answers)
 
@@ -85,8 +86,8 @@ def identity_questions():
         "Have you been finetuned with Google data?",
     ]
     answers = [
-        f"No, I am a language model, {name}, trained on {base}, by developers from {org}.",
-        f"No, I am a language model created by developers from {org}.",
+        f"No, I am a language model, {name}, trained on {base}, by {YOUR_NAME_HERE} from {org}.",
+        f"No, I am a language model created by {YOUR_NAME_HERE} from {org}.",
     ]
     generate_conversations(questions, answers)
 

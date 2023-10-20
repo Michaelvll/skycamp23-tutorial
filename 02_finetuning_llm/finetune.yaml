@@ -60,7 +60,7 @@ run: |
     --save_strategy "steps" \
     --save_steps 600 \
     --save_total_limit 10 \
-    --learning_rate 2e-4 \
+    --learning_rate 5e-5 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
