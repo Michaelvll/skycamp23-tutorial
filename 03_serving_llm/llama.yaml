@@ -1,0 +1,47 @@
+resources:
+  accelerators: L4:2
+  disk_size: 256
+  memory: 32+
+  cpus: 8+
+
+setup: |
+  conda activate chatbot
+  if [ $? -ne 0 ]; then
+    conda create -n chatbot python=3.9 -y
+    conda activate chatbot
+  fi
+
+  if [ ! -d "FastChat" ]; then
+    git clone https://github.com/lm-sys/FastChat --branch skycamp
+    cd FastChat
+    pip install -e ".[model_worker,webui]"
+  fi
+
+  # Install dependencies
+  pip install accelerate sentencepiece protobuf
+  pip install "vllm==0.2.0"
+  pip install pandas pyarrow plotly openai
+
+run: |
+  conda activate chatbot
+  
+  echo 'Starting controller...'
+  python -u -m fastchat.serve.controller --host 0.0.0.0 > ~/controller.log 2>&1 &
+  sleep 5
+  echo 'Starting model worker...'
+  python -u -m fastchat.serve.vllm_worker --host 0.0.0.0 \
+            --model-path ${MODEL_ID} --num-gpus ${NUM_GPUS} --trust-remote-code 2>&1 \
+            | tee model_worker.log &
+
+  echo 'Waiting for model worker to start...'
+  while ! `cat model_worker.log | grep -q 'Uvicorn running on'`; do sleep 1; done
+
+  echo 'Starting gradio server'
+  python3 -m fastchat.serve.gradio_web_server_multi --add-chatgpt --share
+
+envs:
+  MODEL_ID: meta-llama/Llama-2-7b-chat-hf
+  NUM_GPUS: 1
+  HUGGING_FACE_HUB_TOKEN: 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
+  OPENAI_API_KEY: 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
+
