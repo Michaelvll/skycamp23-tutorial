@@ -14,7 +14,7 @@ setup: |
   if [ ! -d "FastChat" ]; then
     git clone https://github.com/lm-sys/FastChat --branch skycamp
     cd FastChat
-    pip install -e ".[model_worker,webui]"
+    pip install -e ".[model_worker,webui,llm_judge]"
   fi
 
   # Install dependencies
