@@ -23,13 +23,15 @@ setup: |
     conda create -n chatbot python=3.10.11 -y
     conda activate chatbot
   fi
-  cd ./scripts
-
+  git clone https://github.com/lm-sys/FastChat --branch skycamp
+  cd FastChat
   pip install packaging
-  pip install fschat[model_worker,webui]
-  pip install fschat[train]
+  pip install -e .[model_worker,webui]
+  pip install -e .[train]
+  cd -
 
   # Create hardcoded questions
+  cd ./scripts
   python hardcoded_questions.py
 
 run: |
@@ -77,25 +79,3 @@ run: |
     --report_to "none"
 
 
-  echo "=== Finished training ==="
-  echo "Find your model in the bucket: $BUCKET"
-
-
-  echo "=== Start serving ==="
-  echo 'Starting controller...'
-  python -u -m fastchat.serve.controller --host 127.0.0.1 > ~/controller.log 2>&1 &
-  sleep 10
-  echo 'Starting model worker...'
-  python -u -m fastchat.serve.model_worker \
-            --model-path /artifacts/skychat/ \
-            --host 127.0.0.1 \
-            --conv-template qwen-7b-chat 2>&1 \
-            | tee model_worker.log &
-
-  echo 'Waiting for model worker to start...'
-  while ! `cat model_worker.log | grep -q 'Uvicorn running on'`; do sleep 1; done
-
-  echo 'Starting gradio server...'
-  python -u -m fastchat.serve.gradio_web_server --share | tee ~/gradio.log
-  # Exit with the return code of the last command
-  exit $?
