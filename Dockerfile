@@ -11,7 +11,7 @@ ADD ./requirements.txt /skycamp-tutorial/requirements.txt
 RUN pip install -r requirements.txt
 
 # Install SkyPilot + dependencies
-RUN pip install skypilot-nightly[gcp,kubernetes]==1.0.0.dev20231015
+RUN pip install git+https://github.com/skypilot-org/skypilot.git@1abe972568ec60253f52a2c8c2ad8fe497001bb9#egg=skypilot[gcp,kubernetes]
 
 RUN apt update -y && \
     apt install rsync nano vim curl socat netcat -y && \
